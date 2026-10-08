@@ -63,7 +63,7 @@ tumbler-export/
 
 ```
 ┌ HUD (한 줄, 56px) ───────────────────────────────────────────┐
-│ 📦 텀블러 수출 대작전               [💰 예상 이익 ₩…] [💚 신뢰 50 ▬▬|▭] │
+│ 📦 텀블러 수출 대작전   [💰 예상 이익 ₩… │ 목표 ₩10,000,000] [💚 신뢰 50 ▬▬|▭ │ 목표 60] │
 └──────────────────────────────────────────────────────────────┘
 ┌ 왼쪽 220 ──┐ ┌ 장면 ─────────────────────┐ ┌ 오른쪽 280 ────┐
 │ 🗺️ 항로     │ │ 꼬리표 · 제목                │ │ 🎫 거래 티켓    │
@@ -75,7 +75,8 @@ tumbler-export/
               └───────────────────────────┘
 ```
 
-- 위쪽 HUD는 한 줄이고 스크롤해도 따라옵니다. 이익과 신뢰를 항상 보여 줍니다.
+- 위쪽 HUD는 한 줄이고 스크롤해도 따라옵니다. 이익과 신뢰를 각각의 목표(₩10,000,000, 60)와 함께 항상 보여 줍니다. 폰에서는 목표가 알약 안 둘째 줄로 내려갑니다.
+- 시작 화면에서 예상 이익, 바이어 신뢰, 목표가 무엇인지 설명합니다.
 - 왼쪽 항로 지도는 지금 단계에 "지금" 꼬리표를 달고, 지난 단계는 ✓로 바꿉니다.
 - 🏆 기록은 판을 끝낼 때마다 플레이 횟수, 최고 기록, 배지 8종을 이 브라우저의 `localStorage`에 저장합니다. 저장소를 쓸 수 없으면 페이지를 닫을 때까지만 기억합니다. 카드 아래 "기록 초기화"를 누르면 카드 안에서 한 번 더 확인한 뒤 플레이 횟수, 최고 기록, 배지를 모두 지웁니다.
 - 대화는 메신저처럼 바이어(Mia)가 왼쪽, 우리 회사 사람이 오른쪽에 나옵니다.
@@ -160,11 +161,13 @@ tumbler-export/
       <div class="stat money" title="목표 ₩10,000,000">
         <span class="stat-k">💰 예상 이익</span>
         <b class="stat-v" id="b-profit"></b>
+        <small class="stat-goal">목표 ₩10,000,000</small>
       </div>
       <div class="stat trust" title="눈금(60)을 넘기면 재주문이 들어옵니다">
         <span class="stat-k">💚 신뢰</span>
         <b class="stat-v" id="b-trust-n"></b>
         <div class="bar"><i id="b-trust"></i></div>
+        <small class="stat-goal">목표 60</small>
       </div>
     </div>
   </div>
@@ -275,6 +278,7 @@ b, strong { font-weight: 700; }
 .stat.trust { background: var(--mint); }
 .stat-k { font-size: 12px; font-weight: 700; color: var(--muted); }
 .stat-v { font-size: 16px; font-variant-numeric: tabular-nums; letter-spacing: -0.2px; }
+.stat-goal { font-size: 11.5px; font-weight: 700; color: var(--muted); padding-left: var(--s2); border-left: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); font-variant-numeric: tabular-nums; }
 .bar { position: relative; width: 84px; height: 8px; border-radius: 4px; background: var(--surface); overflow: hidden; }
 .bar i { display: block; height: 100%; border-radius: 4px; background: var(--mint-d); transition: width 0.5s cubic-bezier(.3, 1.4, .5, 1); }
 .bar::after { content: ""; position: absolute; left: 60%; top: 0; bottom: 0; width: 2px; background: var(--ink); opacity: 0.55; }
@@ -482,11 +486,13 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
   .route li.now span::after { display: none; }
 }
 @media (max-width: 760px) {
-  :root { --hud-h: 92px; }
+  :root { --hud-h: 112px; }
   .hud-in { padding: var(--s2) var(--s4); }
   .stats { width: 100%; }
   .stat { flex: 1 1 0; min-width: 0; padding: 0 var(--s2); }
   .stat.trust .bar { flex: 1; width: auto; min-width: 40px; }
+  .stat { height: auto; min-height: 36px; flex-wrap: wrap; row-gap: 0; padding: 4px var(--s2); }
+  .stat-goal { flex-basis: 100%; padding-left: 0; border-left: 0; font-size: 11px; }
   .game {
     grid-template-columns: minmax(0, 1fr); padding: var(--s3) var(--s4) var(--s5); gap: var(--s3);
     grid-template-areas: "map" "stage" "ticket" "record"; grid-template-rows: none;
@@ -1040,7 +1046,9 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
       '<p>주방용품 제조사 한빛리빙 해외영업팀에 입사한 지 석 달. 미국 LA의 유통업체 Harbor &amp; Pine Trading에서 첫 견적 요청이 들어왔습니다. 견적부터 대금 회수까지 직접 결정하세요.</p>' +
       '<ul><li>결정은 5~6번, 한 판에 5분쯤 걸립니다.</li>' +
       '<li>운임, 환율, 운송 사고, 바이어의 자금 사정은 판마다 다르게 정해져 있고 미리 알 수 없습니다.</li>' +
-      '<li>목표는 이익 1,000만 원을 지키면서 재주문을 받아내는 것입니다.</li></ul>' +
+      '<li><b>💰 예상 이익</b>은 ₩10,000,000에서 시작해 고른 조건, 드는 비용, 터지는 사건에 따라 오르내립니다.</li>' +
+      '<li><b>💚 바이어 신뢰</b>는 바이어 Mia가 우리를 얼마나 믿는지입니다. 50에서 시작해 Mia가 원하는 조건을 주거나 문제를 먼저 알리면 오르고, 부담을 주거나 약속을 어기면 내려갑니다. 마지막에 <b>60 이상</b>이면 재주문이 들어옵니다.</li>' +
+      '<li><b>🎯 목표</b>는 이익 ₩10,000,000을 지키면서 신뢰 60을 넘겨 재주문을 받아내는 것입니다. 둘 다 위쪽 상단 바에서 계속 볼 수 있어요.</li></ul>' +
       '<div class="actions"><button type="button" class="btn" data-act="start" id="go">거래 시작</button></div>' +
       '<p class="fine" style="margin-top:14px">등장하는 회사와 인물은 모두 가상이고, 금액과 확률은 연습용 가정입니다.</p>';
   }
