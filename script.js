@@ -94,10 +94,12 @@
     if (c.inc === 'DAP') trust += 10;
     trust += { oa: 10, oains: 10, lc: -5, adv: -15 }[c.pay] || 0;
     if (inc === 'CIF' && c.ins === 'A') trust += 3;
-    trust += { overtime: 5, ask: -3, silent: -20, backdate: 0 }[c.delay] || 0;
+    // 야간 생산과 B/L 소동은 바이어가 모르는 일이라 신뢰에 영향이 없다
+    trust += { overtime: 0, ask: -3, silent: -20, backdate: 0 }[c.delay] || 0;
     if (isPost()) trust += { courier: 0, surrender: 3, hold: -15 }[c.bl] || 0;
     if (c.pay === 'adv' && c.bl && c.bl !== 'hold') trust += 5;
-    if (c.doc && hasDisc()) trust -= 5;
+    // 선적 지연 하자는 납기 단계(silent −20)에서 이미 반영했으므로 서류 실수만 따로 깎는다
+    if (c.doc && c.doc !== 'name') trust -= 5;
     if (dmg && inc === 'CIF') trust += c.ins === 'A' ? 5 : -20;
     if (dmg && inc === 'DAP') trust += c.ins === 'A' ? -5 : -10;
     trust = Math.max(0, Math.min(100, trust));
@@ -486,9 +488,10 @@
       '<p class="fine" style="margin-top:14px">등장하는 회사와 인물은 모두 가상이고, 금액과 확률은 연습용 가정입니다.</p>';
   }
   function decisionHtml(key) {
+    // 조건을 고르기 전에는 보험 단계가 seq()에 없으므로 하나 더해서 센다 (FOB면 빠진다)
     const d = D[key], keys = seq().filter(function (k) { return D[k]; });
-    let h = '<span class="tag">결정 ' + (keys.indexOf(key) + 1) + ' / ' + keys.length + ' · ' + d.tag + '</span><h2>' + d.title + '</h2>' + sceneHtml(d.scene());
-    h += '<div class="options">' + d.options().map(function (o) {
+    let h = '<span class="tag">결정 ' + (keys.indexOf(key) + 1) + ' / ' + (keys.length + (s.c.inc ? 0 : 1)) + ' · ' + d.tag + '</span><h2>' + d.title + '</h2>' + sceneHtml(d.scene());
+    h += '<div class="options' + (s.answered ? ' locked' : '') + '">' + d.options().map(function (o) {
       const picked = s.c[key] === o.id;
       return '<button type="button" class="opt' + (picked ? ' picked' : '') + '" data-opt="' + o.id + '"' + (s.answered ? ' disabled' : '') + '><b>' + o.title + '</b>' + (o.desc ? '<span>' + o.desc + '</span>' : '') + '</button>';
     }).join('') + '</div>';
@@ -549,7 +552,10 @@
     el.innerHTML = !key ? introHtml() : key === 'report' ? reportHtml() : EV[key] ? eventHtml(key) : decisionHtml(key);
     if (moved && !s.answered) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
     if (moved) {
-      if (el.getBoundingClientRect().top < 0) el.scrollIntoView({ block: 'start' });
+      // 새 장면은 맨 위부터, 고른 뒤에는 결과와 다음 버튼이 보이게 스크롤한다
+      const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+      if (!s.answered) window.scrollTo({ top: 0 });
+      else { const r = el.querySelector('.result'); if (r) r.scrollIntoView({ block: 'nearest', behavior: calm }); }
       const b = el.querySelector(D[key] && !s.answered ? '.opt' : '#go');
       if (b) b.focus({ preventScroll: true });
     }

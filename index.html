@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>첫 수출 한 건</title>
+<title>텀블러 수출 대작전</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,21 +11,17 @@
   <div class="hud-in">
     <div class="logo">
       <span class="logo-icon" aria-hidden="true">📦</span>
-      <div>
-        <h1>첫 수출 한 건</h1>
-        <p>신입 무역 담당자의 첫 거래</p>
-      </div>
+      <h1>텀블러 수출 대작전</h1>
     </div>
     <div class="stats">
-      <div class="stat money">
+      <div class="stat money" title="목표 ₩10,000,000">
         <span class="stat-k">💰 예상 이익</span>
         <b class="stat-v" id="b-profit"></b>
-        <small>목표 ₩10,000,000</small>
       </div>
-      <div class="stat trust">
-        <span class="stat-k">💚 바이어 신뢰 <b id="b-trust-n"></b></span>
-        <div class="bar" title="60을 넘기면 재주문"><i id="b-trust"></i></div>
-        <small>눈금(60)을 넘기면 재주문</small>
+      <div class="stat trust" title="눈금(60)을 넘기면 재주문이 들어옵니다">
+        <span class="stat-k">💚 신뢰</span>
+        <b class="stat-v" id="b-trust-n"></b>
+        <div class="bar"><i id="b-trust"></i></div>
       </div>
     </div>
   </div>
@@ -42,6 +38,7 @@
   <aside class="panel ticket" aria-label="거래 조건">
     <h2 class="panel-t">🎫 거래 티켓</h2>
     <dl class="sheet" id="sheet"></dl>
+    <p class="goal">🎯 목표: 이익 ₩10,000,000 지키고<br>신뢰 60 넘겨 재주문 받기</p>
   </aside>
 </div>
 <script src="script.js"></script>
