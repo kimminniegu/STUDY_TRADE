@@ -53,35 +53,50 @@ tumbler-export/
 | 견적가, 원가, 운임, 보험료, 사건 확률 | `script.js` 맨 위 "연습용 가정" 상수 |
 | 장면 대사, 선택지, 해설 | `script.js`의 `D` (결정)와 `EV` (사건) |
 | 손익과 신뢰 계산 | `script.js`의 `ledger()` |
-| 등급 기준 | `script.js`의 `reportHtml()` 앞부분 |
+| 등급 기준 | `script.js`의 `gradeOf()` |
 | 색상 | `style.css`의 `:root` 변수 (다크 모드 값은 바로 아래 두 블록) |
 | 글꼴 | `style.css` 맨 위 `@font-face`와 `:root`의 `--sans` |
 | 항로 단계 이름과 아이콘 | `script.js`의 `NODES`, `ICONS` |
+| 배지 종류와 조건 | `script.js`의 `BADGES` |
 
 ## 화면 구성
 
 ```
-┌ HUD (한 줄, 56px) ──────────────────────────────────────┐
-│ 📦 텀블러 수출 대작전          [💰 예상 이익 ₩…] [💚 신뢰 50 ▬▬▬|▭] │
-└─────────────────────────────────────────────────────────┘
-┌ 🗺️ 항로 ┐ ┌ 장면 ───────────────────────┐ ┌ 🎫 거래 티켓 ┐
-│ 🧾 견적  │ │ 꼬리표 · 제목                  │ │ 품목         │
-│ 💳 결제  │ │ 바이어 말풍선 (왼쪽)            │ │ 조건         │
-│ 💱 환율  │ │             사내 말풍선 (오른쪽) │ │ 결제 …       │
-│ …       │ │ [A 선택지] [B 선택지]          │ │ 🎯 목표      │
-│ 🏁 결산  │ │ [C 선택지] [D 선택지]          │ └─────────────┘
-└─────────┘ │ 결과 · 해설 · [다음 →]         │
-            └─────────────────────────────┘
+┌ HUD (한 줄, 56px) ───────────────────────────────────────────┐
+│ 📦 텀블러 수출 대작전               [💰 예상 이익 ₩…] [💚 신뢰 50 ▬▬|▭] │
+└──────────────────────────────────────────────────────────────┘
+┌ 왼쪽 220 ──┐ ┌ 장면 ─────────────────────┐ ┌ 오른쪽 280 ────┐
+│ 🗺️ 항로     │ │ 꼬리표 · 제목                │ │ 🎫 거래 티켓    │
+│ 🧾 견적     │ │ 바이어 말풍선 (왼쪽)          │ │ 🎯 목표         │
+│ 💳 결제     │ │           사내 말풍선 (오른쪽) │ ├───────────────┤
+│ 💱 환율 …   │ │ [A 선택지] [B 선택지]        │ │ 🏆 기록·배지    │
+│ 🏁 결산     │ │ [C 선택지] [D 선택지]        │ └───────────────┘
+└───────────┘ │ 결과 · 해설 · [다음 →]       │
+              └───────────────────────────┘
 ```
 
 - 위쪽 HUD는 한 줄이고 스크롤해도 따라옵니다. 이익과 신뢰를 항상 보여 줍니다.
 - 왼쪽 항로 지도는 지금 단계에 "지금" 꼬리표를 달고, 지난 단계는 ✓로 바꿉니다.
+- 🏆 기록은 판을 끝낼 때마다 플레이 횟수, 최고 기록, 배지 8종을 이 브라우저의 `localStorage`에 저장합니다. 저장소를 쓸 수 없으면 페이지를 닫을 때까지만 기억합니다. 카드 아래 "기록 초기화"를 누르면 카드 안에서 한 번 더 확인한 뒤 플레이 횟수, 최고 기록, 배지를 모두 지웁니다.
 - 대화는 메신저처럼 바이어(Mia)가 왼쪽, 우리 회사 사람이 오른쪽에 나옵니다.
-- 선택지는 A·B·C·D 키캡이 붙은 타일이고, 화면이 넓으면 2열로 놓입니다. 창 높이가 약 630px 이상이면 모든 결정 장면의 선택지가 스크롤 없이 보입니다.
+- 선택지는 A·B·C·D 키캡이 붙은 타일이고, 화면이 넓으면 2열로 놓입니다. 설명이 없는 짧은 선택지(서류 장면)는 한 줄에 놓습니다. 창 높이가 약 630px 이상이면 모든 결정 장면의 선택지가 스크롤 없이 보입니다.
 - 선택지를 고르면 나머지 선택지의 설명이 접히고, 결과와 "다음" 버튼이 화면 밖에 있으면 자동으로 스크롤해 보여 줍니다.
-- 화면 너비가 1080px 이하면 항로가 장면 위 가로 띠로 바뀌고, 760px 이하면 거래 티켓이 장면 아래로 내려갑니다.
+- 화면 너비가 1080px 이하면 항로가 장면 위 가로 띠로 바뀌고 거래 티켓과 기록은 장면 오른쪽에 쌓입니다. 760px 이하면 모든 카드가 장면 아래로 내려갑니다.
 - 간격은 4·8·12·16·24px, 모서리 둥글기는 10·16·24px만 씁니다 (`style.css`의 `--s1`~`--s5`, `--r-sm`~`--r-lg`).
 - 기기에서 움직임 줄이기를 켜 두면 애니메이션이 모두 꺼집니다.
+
+## 배지
+
+| 배지 | 얻는 조건 |
+| --- | --- |
+| 🎯 목표 달성 | 이익 ₩10,000,000 이상 |
+| 🤝 재주문 | 신뢰 60 이상으로 재주문 받기 (바이어 파산 제외) |
+| 👑 S등급 | S등급 받기 |
+| 🔍 서류 달인 | 신용장 인보이스의 품명 하자 찾아내기 |
+| 📞 먼저 알림 | 납기 지연을 바이어에게 먼저 알리기 |
+| 💱 환율 방어 | 환율이 내린 판에 전액 또는 절반 헤지해 두기 |
+| 🛟 보험 덕분 | 사고 난 판에 ICC(A)로 대비하기 |
+| 🧯 위기 탈출 | 바이어가 파산한 판에서 흑자 내기 |
 
 ## 바이어 신뢰 계산
 
@@ -156,18 +171,26 @@ tumbler-export/
 </header>
 
 <div class="game">
-  <nav class="panel map" aria-label="진행 단계">
-    <h2 class="panel-t">🗺️ 항로</h2>
-    <ol class="route" id="route"></ol>
-  </nav>
+  <div class="side side-l">
+    <nav class="panel map" aria-label="진행 단계">
+      <h2 class="panel-t">🗺️ 항로</h2>
+      <ol class="route" id="route"></ol>
+    </nav>
+  </div>
 
   <main class="stage" id="stage" aria-live="polite"></main>
 
-  <aside class="panel ticket" aria-label="거래 조건">
-    <h2 class="panel-t">🎫 거래 티켓</h2>
-    <dl class="sheet" id="sheet"></dl>
-    <p class="goal">🎯 목표: 이익 ₩10,000,000 지키고<br>신뢰 60 넘겨 재주문 받기</p>
-  </aside>
+  <div class="side side-r">
+    <aside class="panel ticket" aria-label="거래 조건">
+      <h2 class="panel-t">🎫 거래 티켓</h2>
+      <dl class="sheet" id="sheet"></dl>
+      <p class="goal">🎯 목표: 이익 ₩10,000,000 지키고 신뢰 60 넘겨 재주문 받기</p>
+    </aside>
+    <section class="panel record-card" aria-labelledby="record-t">
+      <h2 class="panel-t" id="record-t">🏆 기록</h2>
+      <div id="record"></div>
+    </section>
+  </div>
 </div>
 <script src="script.js"></script>
 </body>
@@ -257,8 +280,9 @@ b, strong { font-weight: 700; }
 .bar::after { content: ""; position: absolute; left: 60%; top: 0; bottom: 0; width: 2px; background: var(--ink); opacity: 0.55; }
 
 /* ── 3단 본문 ── */
-.game { max-width: 1240px; margin-inline: auto; padding: var(--s4) var(--s5) var(--s5); display: grid; grid-template-columns: 172px minmax(0, 1fr) 236px; gap: var(--s4); align-items: start; }
-.panel { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: var(--s4); position: sticky; top: calc(var(--hud-h) + var(--s4)); }
+.game { max-width: 1240px; margin-inline: auto; padding: var(--s4) var(--s5) var(--s5); display: grid; grid-template-columns: 220px minmax(0, 1fr) 280px; gap: var(--s4); align-items: start; }
+.side { display: grid; gap: var(--s4); align-content: start; min-width: 0; }
+.panel { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: var(--s4); min-width: 0; }
 .panel-t { margin: 0 0 var(--s3); font-size: 13px; font-weight: 700; color: var(--muted); }
 
 /* 항로 지도: 아이콘 정거장을 세로 점선이 잇는다 */
@@ -339,6 +363,7 @@ b, strong { font-weight: 700; }
 .opt.picked { opacity: 1; background: var(--mint); border-color: var(--mint-d); }
 .opt.picked::before { content: "✓"; color: var(--on-accent); background: var(--mint-d); }
 /* 고른 뒤에는 나머지 선택지의 설명을 접어 결과가 한눈에 들어오게 한다 */
+.options.short { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 .options.locked { align-items: start; }
 .options.locked .opt:not(.picked) span { display: none; }
 
@@ -401,15 +426,55 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
 .review .pick small { font-size: 11px; color: var(--lav-d); background: var(--lav); border-radius: 6px; padding: 0 var(--s2); }
 .review p { margin: var(--s1) 0 0; font-size: 13.5px; color: var(--muted); max-width: none; }
 
+.cap { margin: var(--s2) 0 0; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+
+/* 기록과 배지 */
+.rec-sum { display: flex; align-items: center; gap: var(--s3); background: var(--bg); border-radius: var(--r-md); padding: var(--s2) var(--s3); }
+.rec-sum > div { flex: 1; min-width: 0; display: grid; }
+.rec-sum b { font-size: 13px; }
+.rec-sum small { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rec-g { flex: none; width: 36px; height: 36px; border-radius: var(--r-sm); display: grid; place-items: center; font-size: 20px; font-weight: 700; background: var(--surface); color: var(--muted); }
+.rec-g.g-S, .rec-g.g-A { color: var(--mint-d); }
+.rec-g.g-B { color: var(--lav-d); }
+.rec-g.g-C { color: var(--cream-d); }
+.rec-g.g-D, .rec-g.g-F { color: var(--blush-d); }
+.rec-n { font-size: 11.5px; font-weight: 700; color: var(--lav-d); background: var(--lav); border-radius: 6px; padding: 0 6px; }
+.badges { list-style: none; margin: var(--s3) 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s2); }
+.badges li { display: grid; justify-items: center; gap: 2px; padding: 6px 2px; border-radius: var(--r-sm); background: var(--bg); text-align: center; cursor: help; }
+.badges li span { font-size: 18px; line-height: 1.2; color: var(--muted); font-weight: 700; }
+.badges li small { font-size: 10px; line-height: 1.3; color: var(--muted); white-space: nowrap; }
+.badges li:not(.got) span { opacity: 0.45; }
+.badges li.got { background: var(--lav); }
+.badges li.got small { color: var(--ink); font-weight: 700; }
+.badges li.fresh { box-shadow: 0 0 0 2px var(--lav-d); animation: pop 0.5s cubic-bezier(.3, 1.8, .5, 1) both; }
+.rec-reset { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s2); margin-top: var(--s3); padding-top: var(--s3); border-top: 1px dashed var(--line); }
+.rec-reset.ask { justify-content: space-between; }
+.rec-reset span { font-size: 12.5px; font-weight: 700; color: var(--blush-d); margin-right: auto; }
+.mini { font: 700 12px var(--sans); color: var(--muted); background: var(--bg); border: 0; border-radius: var(--r-sm); padding: 6px var(--s3); cursor: pointer; }
+.mini:hover:not([disabled]) { color: var(--ink); background: var(--lav); }
+.mini:focus-visible { outline: 2px solid var(--lav-d); outline-offset: 2px; }
+.mini[disabled] { opacity: 0.45; cursor: default; }
+.mini.danger { color: var(--blush-d); background: var(--blush); }
+.mini.danger:hover { color: var(--on-accent); background: var(--blush-d); }
+.new-badges { margin: var(--s3) 0 0; padding: var(--s2) var(--s3); border-radius: var(--r-sm); background: var(--cream); font-size: 13.5px; font-weight: 700; }
+
 /* ── 움직임 ── */
 @keyframes pop { from { transform: scale(0.97); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-2px) rotate(3deg); } }
 @keyframes stamp { from { transform: rotate(-30deg) scale(1.7); opacity: 0; } to { transform: rotate(-6deg) scale(1); opacity: 1; } }
 
-/* ── 좁은 화면: 항로는 가로 띠, 티켓은 장면 아래 ── */
+/* ── 좁은 화면: 항로는 가로 띠, 나머지 카드는 장면 오른쪽(760px 이하는 아래)에 쌓는다 ── */
 @media (max-width: 1080px) {
-  .game { grid-template-columns: minmax(0, 1fr) 236px; }
-  .map { grid-column: 1 / -1; position: static; padding: var(--s3) var(--s4); }
+  .game {
+    grid-template-columns: minmax(0, 1fr) 260px;
+    grid-template-areas: "map map" "stage ticket" "stage record" "stage .";
+    grid-template-rows: auto auto auto 1fr;
+  }
+  .side { display: contents; }
+  .map { grid-area: map; padding: var(--s3) var(--s4); }
+  .stage { grid-area: stage; }
+  .ticket { grid-area: ticket; }
+  .record-card { grid-area: record; }
   .map .panel-t { display: none; }
   .route { display: flex; justify-content: space-between; gap: var(--s1); }
   .route li { flex-direction: column; gap: var(--s1); font-size: 11.5px; }
@@ -422,8 +487,10 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
   .stats { width: 100%; }
   .stat { flex: 1 1 0; min-width: 0; padding: 0 var(--s2); }
   .stat.trust .bar { flex: 1; width: auto; min-width: 40px; }
-  .game { grid-template-columns: minmax(0, 1fr); padding: var(--s3) var(--s4) var(--s5); gap: var(--s3); }
-  .ticket { position: static; }
+  .game {
+    grid-template-columns: minmax(0, 1fr); padding: var(--s3) var(--s4) var(--s5); gap: var(--s3);
+    grid-template-areas: "map" "stage" "ticket" "record"; grid-template-rows: none;
+  }
   .route { overflow-x: auto; justify-content: flex-start; gap: var(--s3); padding-bottom: 2px; }
   .route li { flex: none; }
   .stage { padding: var(--s4); }
@@ -471,7 +538,8 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
     };
   }
   function reset(world) {
-    s = { phase: 'intro', i: 0, answered: false, last: null, w: world || drawWorld(), c: {}, rv: {} };
+    // newBadges: 이번 판에 처음 얻은 배지
+    s = { phase: 'intro', i: 0, answered: false, last: null, w: world || drawWorld(), c: {}, rv: {}, newBadges: null };
   }
 
   function seq() {
@@ -919,6 +987,54 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
     $('sheet').innerHTML = rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('');
   }
 
+  /* ───────── 사이드 카드: 기록과 배지 (이 브라우저에만 저장) ───────── */
+  const REC_KEY = 'tumbler-export-record-v1';
+  const GOAL = 1e7;
+  const BADGES = [
+    { id: 'goal', icon: '🎯', name: '목표 달성', hint: '이익 ₩10,000,000 이상', test: function (l) { return l.profit >= GOAL; } },
+    { id: 'reorder', icon: '🤝', name: '재주문', hint: '신뢰 60 이상으로 재주문 받기', test: function (l) { return l.trust >= 60 && s.w.credit !== 'default'; } },
+    { id: 'ace', icon: '👑', name: 'S등급', hint: 'S등급 받기', test: function (l, g) { return g === 'S'; } },
+    { id: 'doc', icon: '🔍', name: '서류 달인', hint: '신용장 인보이스 하자 찾아내기', test: function () { return s.c.doc === 'name'; } },
+    { id: 'honest', icon: '📞', name: '먼저 알림', hint: '납기 지연을 바이어에게 먼저 알리기', test: function () { return s.c.delay === 'ask'; } },
+    { id: 'hedge', icon: '💱', name: '환율 방어', hint: '환율이 내린 판에 헤지해 두기', test: function () { return s.w.fx < FX_NOW && s.c.fx !== 'none'; } },
+    { id: 'cover', icon: '🛟', name: '보험 덕분', hint: '사고 난 판에 ICC(A)로 대비하기', test: function () { return s.w.damage && s.c.ins === 'A'; } },
+    { id: 'crisis', icon: '🧯', name: '위기 탈출', hint: '바이어가 파산한 판에서 흑자 내기', test: function (l) { return s.w.credit === 'default' && l.profit > 0; } }
+  ];
+  let rec = { plays: 0, best: null, badges: [] };
+  let askReset = false;   // 초기화 버튼을 한 번 누르면 카드 안에서 다시 묻는다
+  try { const saved = JSON.parse(localStorage.getItem(REC_KEY)); if (saved && saved.badges) rec = saved; } catch (e) { /* 저장소를 못 쓰면 이번 방문 동안만 기억한다 */ }
+
+  function gradeOf(l) {
+    const score = Math.max(-1, Math.min(1.3, l.profit / 1e7)) * 60 + l.trust * 0.4;
+    return { score: score, g: l.profit < 0 ? 'F' : score >= 88 ? 'S' : score >= 74 ? 'A' : score >= 60 ? 'B' : score >= 45 ? 'C' : 'D' };
+  }
+  // 성적표에 들어설 때 한 번만 기록한다
+  function saveRecord() {
+    const l = ledger(), gr = gradeOf(l);
+    s.newBadges = BADGES.filter(function (b) { return b.test(l, gr.g) && rec.badges.indexOf(b.id) < 0; }).map(function (b) { return b.id; });
+    rec.badges = rec.badges.concat(s.newBadges);
+    rec.plays += 1;
+    if (!rec.best || gr.score > rec.best.score) rec.best = { g: gr.g, score: gr.score, profit: l.profit, trust: l.trust };
+    try { localStorage.setItem(REC_KEY, JSON.stringify(rec)); } catch (e) { /* 저장 실패는 무시 */ }
+  }
+  function renderRecord() {
+    const b = rec.best, onReport = s.phase !== 'intro' && seq()[s.i] === 'report';
+    $('record').innerHTML =
+      '<div class="rec-sum">' + (b
+        ? '<span class="rec-g g-' + b.g + '">' + b.g + '</span><div><b>최고 기록</b><small>' + krw(b.profit) + ' · 신뢰 ' + b.trust + '</small></div>'
+        : '<span class="rec-g">–</span><div><b>아직 기록 없음</b><small>한 판을 끝내면 남아요</small></div>') +
+      '<span class="rec-n">' + rec.plays + '판</span></div>' +
+      '<ul class="badges">' + BADGES.map(function (x) {
+        const got = rec.badges.indexOf(x.id) >= 0, fresh = onReport && s.newBadges && s.newBadges.indexOf(x.id) >= 0;
+        return '<li class="' + (got ? 'got' : '') + (fresh ? ' fresh' : '') + '" title="' + x.name + ': ' + x.hint + '"><span aria-hidden="true">' + (got ? x.icon : '?') + '</span><small>' + (got ? x.name : '???') + '</small></li>';
+      }).join('') + '</ul>' +
+      '<p class="cap">배지에 마우스를 올리면 얻는 조건이 보여요 · ' + rec.badges.length + ' / ' + BADGES.length + '</p>' +
+      (askReset
+        ? '<div class="rec-reset ask" role="group" aria-label="기록 초기화 확인"><span>기록을 모두 지울까요?</span>' +
+          '<button type="button" class="mini danger" data-rec="yes">지우기</button><button type="button" class="mini" data-rec="no">취소</button></div>'
+        : '<div class="rec-reset"><button type="button" class="mini" data-rec="ask"' + (rec.plays || rec.badges.length ? '' : ' disabled') + '>기록 초기화</button></div>');
+  }
+
   function introHtml() {
     return '<span class="tag">시작 전에</span><h2>오늘부터 이 거래의 담당자는 당신입니다</h2>' +
       '<p>주방용품 제조사 한빛리빙 해외영업팀에 입사한 지 석 달. 미국 LA의 유통업체 Harbor &amp; Pine Trading에서 첫 견적 요청이 들어왔습니다. 견적부터 대금 회수까지 직접 결정하세요.</p>' +
@@ -932,7 +1048,9 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
     // 조건을 고르기 전에는 보험 단계가 seq()에 없으므로 하나 더해서 센다 (FOB면 빠진다)
     const d = D[key], keys = seq().filter(function (k) { return D[k]; });
     let h = '<span class="tag">결정 ' + (keys.indexOf(key) + 1) + ' / ' + (keys.length + (s.c.inc ? 0 : 1)) + ' · ' + d.tag + '</span><h2>' + d.title + '</h2>' + sceneHtml(d.scene());
-    h += '<div class="options' + (s.answered ? ' locked' : '') + '">' + d.options().map(function (o) {
+    // 설명 없는 짧은 선택지(서류 장면)는 한 줄에 여러 개를 놓는다
+    const opts = d.options(), short = opts.every(function (o) { return !o.desc; });
+    h += '<div class="options' + (short ? ' short' : '') + (s.answered ? ' locked' : '') + '">' + opts.map(function (o) {
       const picked = s.c[key] === o.id;
       return '<button type="button" class="opt' + (picked ? ' picked' : '') + '" data-opt="' + o.id + '"' + (s.answered ? ' disabled' : '') + '><b>' + o.title + '</b>' + (o.desc ? '<span>' + o.desc + '</span>' : '') + '</button>';
     }).join('') + '</div>';
@@ -951,15 +1069,15 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
       '<div class="actions"><button type="button" class="btn" data-act="next" id="go">' + (key === 'ev_settle' ? '성적표 보기' : '다음') + '</button></div></div>';
   }
   function reportHtml() {
-    const l = ledger(), w = s.w, c = s.c;
-    const score = Math.max(-1, Math.min(1.3, l.profit / 1e7)) * 60 + l.trust * 0.4;
-    const g = l.profit < 0 ? 'F' : score >= 88 ? 'S' : score >= 74 ? 'A' : score >= 60 ? 'B' : score >= 45 ? 'C' : 'D';
+    const l = ledger(), w = s.w, c = s.c, g = gradeOf(l).g;
     const gname = { S: '에이스 신입', A: '믿고 맡길 담당자', B: '무난한 첫 거래', C: '아슬아슬한 한 건', D: '수업료를 낸 거래', F: '적자 거래' }[g];
     const reorder = w.credit === 'default' ? 'Harbor & Pine과의 거래는 여기서 끝났습니다.'
       : l.trust >= 60 ? 'Mia가 5,000개 재주문을 넣었습니다.'
       : l.trust >= 40 ? 'Mia는 다음 주문을 다른 공급사와 비교해 보겠다고 합니다.' : 'Mia는 다음 주문을 다른 공급사에 넣었습니다.';
     let h = '<div class="verdict"><div class="grade g-' + g + '" role="img" aria-label="등급 ' + g + '">' + g + '</div><div class="say"><span class="tag">성적표</span><h2>' + gname + '</h2>' +
       '<p>이익 <b>' + krw(l.profit) + '</b> (목표 ₩10,000,000), 바이어 신뢰 <b>' + l.trust + '</b>. ' + reorder + '</p></div></div>';
+    if (s.newBadges && s.newBadges.length) h += '<p class="new-badges">🏅 새 배지: ' + BADGES.filter(function (b) { return s.newBadges.indexOf(b.id) >= 0; })
+      .map(function (b) { return b.icon + ' ' + b.name; }).join(', ') + '</p>';
 
     h += '<h3 class="sec">손익 내역</h3><table class="ledger"><tbody>' + l.lines.map(function (x) {
       return '<tr><td>' + x.label + (x.sub ? '<small>' + x.sub + '</small>' : '') + '</td><td class="n">' + krw(x.krw) + '</td></tr>';
@@ -987,7 +1105,7 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
   }
 
   function render(moved) {
-    renderRoute(); renderBoard();
+    renderRoute(); renderBoard(); renderRecord();
     const key = s.phase === 'intro' ? null : seq()[s.i];
     const el = $('stage');
     el.innerHTML = !key ? introHtml() : key === 'report' ? reportHtml() : EV[key] ? eventHtml(key) : decisionHtml(key);
@@ -1010,7 +1128,22 @@ table.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
       const a = ledger(); s.rv[REVEAL[key]] = true; const b = ledger();
       s.last = { dp: b.profit - a.profit, dt: b.trust - a.trust };
     }
+    if (key === 'report' && !s.newBadges) saveRecord();
   }
+
+  $('record').addEventListener('click', function (e) {
+    const b = e.target.closest('[data-rec]');
+    if (!b) return;
+    const act = b.dataset.rec;
+    if (act === 'yes') {
+      rec = { plays: 0, best: null, badges: [] };
+      try { localStorage.removeItem(REC_KEY); } catch (err) { /* 저장소를 못 쓰면 메모리만 비운다 */ }
+    }
+    askReset = act === 'ask';
+    renderRecord();
+    const next = $('record').querySelector(act === 'ask' ? '[data-rec="no"]' : '[data-rec="ask"]');
+    if (next && !next.disabled) next.focus();
+  });
 
   $('stage').addEventListener('click', function (e) {
     const opt = e.target.closest('[data-opt]'), act = e.target.closest('[data-act]');

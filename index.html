@@ -28,18 +28,26 @@
 </header>
 
 <div class="game">
-  <nav class="panel map" aria-label="진행 단계">
-    <h2 class="panel-t">🗺️ 항로</h2>
-    <ol class="route" id="route"></ol>
-  </nav>
+  <div class="side side-l">
+    <nav class="panel map" aria-label="진행 단계">
+      <h2 class="panel-t">🗺️ 항로</h2>
+      <ol class="route" id="route"></ol>
+    </nav>
+  </div>
 
   <main class="stage" id="stage" aria-live="polite"></main>
 
-  <aside class="panel ticket" aria-label="거래 조건">
-    <h2 class="panel-t">🎫 거래 티켓</h2>
-    <dl class="sheet" id="sheet"></dl>
-    <p class="goal">🎯 목표: 이익 ₩10,000,000 지키고<br>신뢰 60 넘겨 재주문 받기</p>
-  </aside>
+  <div class="side side-r">
+    <aside class="panel ticket" aria-label="거래 조건">
+      <h2 class="panel-t">🎫 거래 티켓</h2>
+      <dl class="sheet" id="sheet"></dl>
+      <p class="goal">🎯 목표: 이익 ₩10,000,000 지키고 신뢰 60 넘겨 재주문 받기</p>
+    </aside>
+    <section class="panel record-card" aria-labelledby="record-t">
+      <h2 class="panel-t" id="record-t">🏆 기록</h2>
+      <div id="record"></div>
+    </section>
+  </div>
 </div>
 <script src="script.js"></script>
 </body>

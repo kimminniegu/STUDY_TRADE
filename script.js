@@ -30,7 +30,8 @@
     };
   }
   function reset(world) {
-    s = { phase: 'intro', i: 0, answered: false, last: null, w: world || drawWorld(), c: {}, rv: {} };
+    // newBadges: 이번 판에 처음 얻은 배지
+    s = { phase: 'intro', i: 0, answered: false, last: null, w: world || drawWorld(), c: {}, rv: {}, newBadges: null };
   }
 
   function seq() {
@@ -478,6 +479,54 @@
     $('sheet').innerHTML = rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('');
   }
 
+  /* ───────── 사이드 카드: 기록과 배지 (이 브라우저에만 저장) ───────── */
+  const REC_KEY = 'tumbler-export-record-v1';
+  const GOAL = 1e7;
+  const BADGES = [
+    { id: 'goal', icon: '🎯', name: '목표 달성', hint: '이익 ₩10,000,000 이상', test: function (l) { return l.profit >= GOAL; } },
+    { id: 'reorder', icon: '🤝', name: '재주문', hint: '신뢰 60 이상으로 재주문 받기', test: function (l) { return l.trust >= 60 && s.w.credit !== 'default'; } },
+    { id: 'ace', icon: '👑', name: 'S등급', hint: 'S등급 받기', test: function (l, g) { return g === 'S'; } },
+    { id: 'doc', icon: '🔍', name: '서류 달인', hint: '신용장 인보이스 하자 찾아내기', test: function () { return s.c.doc === 'name'; } },
+    { id: 'honest', icon: '📞', name: '먼저 알림', hint: '납기 지연을 바이어에게 먼저 알리기', test: function () { return s.c.delay === 'ask'; } },
+    { id: 'hedge', icon: '💱', name: '환율 방어', hint: '환율이 내린 판에 헤지해 두기', test: function () { return s.w.fx < FX_NOW && s.c.fx !== 'none'; } },
+    { id: 'cover', icon: '🛟', name: '보험 덕분', hint: '사고 난 판에 ICC(A)로 대비하기', test: function () { return s.w.damage && s.c.ins === 'A'; } },
+    { id: 'crisis', icon: '🧯', name: '위기 탈출', hint: '바이어가 파산한 판에서 흑자 내기', test: function (l) { return s.w.credit === 'default' && l.profit > 0; } }
+  ];
+  let rec = { plays: 0, best: null, badges: [] };
+  let askReset = false;   // 초기화 버튼을 한 번 누르면 카드 안에서 다시 묻는다
+  try { const saved = JSON.parse(localStorage.getItem(REC_KEY)); if (saved && saved.badges) rec = saved; } catch (e) { /* 저장소를 못 쓰면 이번 방문 동안만 기억한다 */ }
+
+  function gradeOf(l) {
+    const score = Math.max(-1, Math.min(1.3, l.profit / 1e7)) * 60 + l.trust * 0.4;
+    return { score: score, g: l.profit < 0 ? 'F' : score >= 88 ? 'S' : score >= 74 ? 'A' : score >= 60 ? 'B' : score >= 45 ? 'C' : 'D' };
+  }
+  // 성적표에 들어설 때 한 번만 기록한다
+  function saveRecord() {
+    const l = ledger(), gr = gradeOf(l);
+    s.newBadges = BADGES.filter(function (b) { return b.test(l, gr.g) && rec.badges.indexOf(b.id) < 0; }).map(function (b) { return b.id; });
+    rec.badges = rec.badges.concat(s.newBadges);
+    rec.plays += 1;
+    if (!rec.best || gr.score > rec.best.score) rec.best = { g: gr.g, score: gr.score, profit: l.profit, trust: l.trust };
+    try { localStorage.setItem(REC_KEY, JSON.stringify(rec)); } catch (e) { /* 저장 실패는 무시 */ }
+  }
+  function renderRecord() {
+    const b = rec.best, onReport = s.phase !== 'intro' && seq()[s.i] === 'report';
+    $('record').innerHTML =
+      '<div class="rec-sum">' + (b
+        ? '<span class="rec-g g-' + b.g + '">' + b.g + '</span><div><b>최고 기록</b><small>' + krw(b.profit) + ' · 신뢰 ' + b.trust + '</small></div>'
+        : '<span class="rec-g">–</span><div><b>아직 기록 없음</b><small>한 판을 끝내면 남아요</small></div>') +
+      '<span class="rec-n">' + rec.plays + '판</span></div>' +
+      '<ul class="badges">' + BADGES.map(function (x) {
+        const got = rec.badges.indexOf(x.id) >= 0, fresh = onReport && s.newBadges && s.newBadges.indexOf(x.id) >= 0;
+        return '<li class="' + (got ? 'got' : '') + (fresh ? ' fresh' : '') + '" title="' + x.name + ': ' + x.hint + '"><span aria-hidden="true">' + (got ? x.icon : '?') + '</span><small>' + (got ? x.name : '???') + '</small></li>';
+      }).join('') + '</ul>' +
+      '<p class="cap">배지에 마우스를 올리면 얻는 조건이 보여요 · ' + rec.badges.length + ' / ' + BADGES.length + '</p>' +
+      (askReset
+        ? '<div class="rec-reset ask" role="group" aria-label="기록 초기화 확인"><span>기록을 모두 지울까요?</span>' +
+          '<button type="button" class="mini danger" data-rec="yes">지우기</button><button type="button" class="mini" data-rec="no">취소</button></div>'
+        : '<div class="rec-reset"><button type="button" class="mini" data-rec="ask"' + (rec.plays || rec.badges.length ? '' : ' disabled') + '>기록 초기화</button></div>');
+  }
+
   function introHtml() {
     return '<span class="tag">시작 전에</span><h2>오늘부터 이 거래의 담당자는 당신입니다</h2>' +
       '<p>주방용품 제조사 한빛리빙 해외영업팀에 입사한 지 석 달. 미국 LA의 유통업체 Harbor &amp; Pine Trading에서 첫 견적 요청이 들어왔습니다. 견적부터 대금 회수까지 직접 결정하세요.</p>' +
@@ -491,7 +540,9 @@
     // 조건을 고르기 전에는 보험 단계가 seq()에 없으므로 하나 더해서 센다 (FOB면 빠진다)
     const d = D[key], keys = seq().filter(function (k) { return D[k]; });
     let h = '<span class="tag">결정 ' + (keys.indexOf(key) + 1) + ' / ' + (keys.length + (s.c.inc ? 0 : 1)) + ' · ' + d.tag + '</span><h2>' + d.title + '</h2>' + sceneHtml(d.scene());
-    h += '<div class="options' + (s.answered ? ' locked' : '') + '">' + d.options().map(function (o) {
+    // 설명 없는 짧은 선택지(서류 장면)는 한 줄에 여러 개를 놓는다
+    const opts = d.options(), short = opts.every(function (o) { return !o.desc; });
+    h += '<div class="options' + (short ? ' short' : '') + (s.answered ? ' locked' : '') + '">' + opts.map(function (o) {
       const picked = s.c[key] === o.id;
       return '<button type="button" class="opt' + (picked ? ' picked' : '') + '" data-opt="' + o.id + '"' + (s.answered ? ' disabled' : '') + '><b>' + o.title + '</b>' + (o.desc ? '<span>' + o.desc + '</span>' : '') + '</button>';
     }).join('') + '</div>';
@@ -510,15 +561,15 @@
       '<div class="actions"><button type="button" class="btn" data-act="next" id="go">' + (key === 'ev_settle' ? '성적표 보기' : '다음') + '</button></div></div>';
   }
   function reportHtml() {
-    const l = ledger(), w = s.w, c = s.c;
-    const score = Math.max(-1, Math.min(1.3, l.profit / 1e7)) * 60 + l.trust * 0.4;
-    const g = l.profit < 0 ? 'F' : score >= 88 ? 'S' : score >= 74 ? 'A' : score >= 60 ? 'B' : score >= 45 ? 'C' : 'D';
+    const l = ledger(), w = s.w, c = s.c, g = gradeOf(l).g;
     const gname = { S: '에이스 신입', A: '믿고 맡길 담당자', B: '무난한 첫 거래', C: '아슬아슬한 한 건', D: '수업료를 낸 거래', F: '적자 거래' }[g];
     const reorder = w.credit === 'default' ? 'Harbor & Pine과의 거래는 여기서 끝났습니다.'
       : l.trust >= 60 ? 'Mia가 5,000개 재주문을 넣었습니다.'
       : l.trust >= 40 ? 'Mia는 다음 주문을 다른 공급사와 비교해 보겠다고 합니다.' : 'Mia는 다음 주문을 다른 공급사에 넣었습니다.';
     let h = '<div class="verdict"><div class="grade g-' + g + '" role="img" aria-label="등급 ' + g + '">' + g + '</div><div class="say"><span class="tag">성적표</span><h2>' + gname + '</h2>' +
       '<p>이익 <b>' + krw(l.profit) + '</b> (목표 ₩10,000,000), 바이어 신뢰 <b>' + l.trust + '</b>. ' + reorder + '</p></div></div>';
+    if (s.newBadges && s.newBadges.length) h += '<p class="new-badges">🏅 새 배지: ' + BADGES.filter(function (b) { return s.newBadges.indexOf(b.id) >= 0; })
+      .map(function (b) { return b.icon + ' ' + b.name; }).join(', ') + '</p>';
 
     h += '<h3 class="sec">손익 내역</h3><table class="ledger"><tbody>' + l.lines.map(function (x) {
       return '<tr><td>' + x.label + (x.sub ? '<small>' + x.sub + '</small>' : '') + '</td><td class="n">' + krw(x.krw) + '</td></tr>';
@@ -546,7 +597,7 @@
   }
 
   function render(moved) {
-    renderRoute(); renderBoard();
+    renderRoute(); renderBoard(); renderRecord();
     const key = s.phase === 'intro' ? null : seq()[s.i];
     const el = $('stage');
     el.innerHTML = !key ? introHtml() : key === 'report' ? reportHtml() : EV[key] ? eventHtml(key) : decisionHtml(key);
@@ -569,7 +620,22 @@
       const a = ledger(); s.rv[REVEAL[key]] = true; const b = ledger();
       s.last = { dp: b.profit - a.profit, dt: b.trust - a.trust };
     }
+    if (key === 'report' && !s.newBadges) saveRecord();
   }
+
+  $('record').addEventListener('click', function (e) {
+    const b = e.target.closest('[data-rec]');
+    if (!b) return;
+    const act = b.dataset.rec;
+    if (act === 'yes') {
+      rec = { plays: 0, best: null, badges: [] };
+      try { localStorage.removeItem(REC_KEY); } catch (err) { /* 저장소를 못 쓰면 메모리만 비운다 */ }
+    }
+    askReset = act === 'ask';
+    renderRecord();
+    const next = $('record').querySelector(act === 'ask' ? '[data-rec="no"]' : '[data-rec="ask"]');
+    if (next && !next.disabled) next.focus();
+  });
 
   $('stage').addEventListener('click', function (e) {
     const opt = e.target.closest('[data-opt]'), act = e.target.closest('[data-act]');
